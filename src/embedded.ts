@@ -11,7 +11,7 @@ import { createHash } from 'crypto';
 
 const defaultBinaryPath = join(homedir(), '.cache/weaviate-embedded');
 const defaultPersistenceDataPath = join(homedir(), '.local/share/weaviate');
-const defaultVersion = '1.18.1';
+const defaultVersion = 'latest';
 
 export interface EmbeddedOptionsConfig {
   host?: string;
