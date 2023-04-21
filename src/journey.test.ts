@@ -31,7 +31,7 @@ describe('embedded', () => {
       }),
       {
         scheme: 'http',
-        host: 'localhost:7878',
+        host: '127.0.0.1:7878',
       }
     );
     await client.embedded.start();
