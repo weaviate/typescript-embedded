@@ -7,7 +7,7 @@ export interface EmbeddedClient extends WeaviateClient {
 
 const app = {
   client: function (embedded: EmbeddedOptions, conn?: ConnectionParams): EmbeddedClient {
-    if (!conn) conn = { host: 'localhost:6666', scheme: 'http' };
+    if (!conn) conn = { host: '127.0.0.1:6666', scheme: 'http' };
     const client = weaviate.client(conn);
     const embeddedClient: EmbeddedClient = {
       ...client,
