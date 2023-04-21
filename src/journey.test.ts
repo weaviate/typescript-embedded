@@ -13,7 +13,9 @@ describe('embedded', () => {
   it('starts/stops EmbeddedDB with default options', async () => {
     const client: EmbeddedClient = weaviate.client(new EmbeddedOptions());
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => fail(err));
+    await checkClientServerConn(client).catch((err: any) => {
+      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+    });
     client.embedded.stop();
   });
 
@@ -33,7 +35,10 @@ describe('embedded', () => {
       }
     );
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => fail(err));
+    await checkClientServerConn(client).catch((err: any) => {
+      client.embedded.stop();
+      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+    });
     client.embedded.stop();
   });
 
@@ -44,7 +49,10 @@ describe('embedded', () => {
       })
     );
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => fail(err));
+    await checkClientServerConn(client).catch((err: any) => {
+      client.embedded.stop();
+      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+    });
     client.embedded.stop();
   });
 
@@ -57,14 +65,16 @@ describe('embedded', () => {
     })
       .then((res: Response) => {
         if (res.status != 200) {
-          fail(new Error(`unexpected status code: ${res.status}`));
+          throw new Error(`unexpected status code: ${res.status}`);
         }
         return res.json();
       })
       .then((body: any) => {
         binaryUrl = body.assets[0].browser_download_url as string;
       })
-      .catch((e: any) => fail(new Error(`unexpected failure: ${JSON.stringify(e)}`)));
+      .catch((err: any) => {
+        throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+      });
 
     const client: EmbeddedClient = weaviate.client(
       new EmbeddedOptions({
@@ -72,7 +82,10 @@ describe('embedded', () => {
       })
     );
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => fail(err));
+    await checkClientServerConn(client).catch((err: any) => {
+      client.embedded.stop();
+      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+    });
     client.embedded.stop();
   });
 });
