@@ -4,7 +4,7 @@ An embedded Weaviate database with TypeScript client interface
 
 ## Documentation
 
-- [Documentation](https://weaviate.io/developers/weaviate/client-libraries/typescript-embedded).
+- [Documentation](https://weaviate.io/developers/weaviate/installation/embedded).
 
 ## Support
 
