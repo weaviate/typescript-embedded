@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "esnext",
     "strict": true,
     "preserveConstEnums": true,
     "noEmit": false,
@@ -11,7 +11,7 @@
     "allowJs": true,
     "checkJs": false,
     "sourceMap": false,
-    "module": "ES2020",
+    "module": "esnext",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "skipLibCheck": true,
