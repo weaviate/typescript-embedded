@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "dependencies": {
-    "weaviate-ts-client": "latest"
+    "weaviate-ts-embedded": "latest"
   },
   "scripts": {
     "start": "tsc && node dist/index.js"
@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^20.1.1",
     "typescript": "^4.9.5"
   }
 }
