@@ -5,13 +5,13 @@ if (process.platform !== 'linux') {
 }
 
 const client = weaviate.client(
+  new EmbeddedOptions({
+    port: 9898,
+  }),
   {
     scheme: 'http',
     host: 'localhost:9898',
-  },
-  new EmbeddedOptions({
-    port: 9898,
-  })
+  }
 );
 
 console.log('Weaviate binary:', client.embedded?.options.binaryPath);
