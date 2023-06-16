@@ -14,7 +14,7 @@ describe('embedded', () => {
     const client: EmbeddedClient = weaviate.client(new EmbeddedOptions());
     await client.embedded.start();
     await checkClientServerConn(client).catch((err: any) => {
-      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+      throw new Error(`unexpected failure: ${err}`);
     });
     client.embedded.stop();
   });
@@ -37,7 +37,7 @@ describe('embedded', () => {
     await client.embedded.start();
     await checkClientServerConn(client).catch((err: any) => {
       client.embedded.stop();
-      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+      throw new Error(`unexpected failure: ${err}`);
     });
     client.embedded.stop();
   });
@@ -51,31 +51,14 @@ describe('embedded', () => {
     await client.embedded.start();
     await checkClientServerConn(client).catch((err: any) => {
       client.embedded.stop();
-      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+      throw new Error(`unexpected failure: ${err}`);
     });
     client.embedded.stop();
   });
 
   it('starts/stops EmbeddedDB with binaryUrl', async () => {
-    let binaryUrl = '';
-    const url = 'https://api.github.com/repos/weaviate/weaviate/releases/latest';
-    await fetch(url, {
-      method: 'GET',
-      headers: { 'content-type': 'application/json' },
-    })
-      .then((res: Response) => {
-        if (res.status != 200) {
-          throw new Error(`unexpected status code: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((body: any) => {
-        binaryUrl = body.assets[0].browser_download_url as string;
-      })
-      .catch((err: any) => {
-        throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
-      });
-
+    const binaryUrl =
+      'https://github.com/weaviate/weaviate/releases/download/v1.19.8/weaviate-v1.19.8-linux-amd64.tar.gz';
     const client: EmbeddedClient = weaviate.client(
       new EmbeddedOptions({
         binaryUrl: binaryUrl,
@@ -84,7 +67,7 @@ describe('embedded', () => {
     await client.embedded.start();
     await checkClientServerConn(client).catch((err: any) => {
       client.embedded.stop();
-      throw new Error(`unexpected failure: ${JSON.stringify(err)}`);
+      throw new Error(`unexpected failure: ${err}`);
     });
     client.embedded.stop();
   });
@@ -107,7 +90,7 @@ async function checkClientServerConn(client: EmbeddedClient) {
       console.log('class created!');
     })
     .catch((err: any) => {
-      throw new Error(`unexpected error: ${JSON.stringify(err)}`);
+      throw new Error(`unexpected error: ${err}`);
     });
 
   await client.schema
@@ -116,6 +99,6 @@ async function checkClientServerConn(client: EmbeddedClient) {
     .do()
     .then(() => console.log('class deleted!'))
     .catch((err: any) => {
-      throw new Error(`unexpected error: ${JSON.stringify(err)}`);
+      throw new Error(`unexpected error: ${err}`);
     });
 }
