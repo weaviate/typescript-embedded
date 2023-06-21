@@ -1,6 +1,6 @@
 # Weaviate TypeScript EmbeddedDB <img alt='Weaviate logo' src='https://weaviate.io/img/site/weaviate-logo-light.png' width='148' align='right' />
 
-An embedded Weaviate database with TypeScript client interface
+An embedded Weaviate database with TypeScript client interface, available for Linux and Mac
 
 ## Documentation
 
