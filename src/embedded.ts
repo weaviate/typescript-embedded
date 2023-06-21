@@ -257,7 +257,8 @@ export class EmbeddedDB {
             new Error(
               `failed to download binary: not found. ` +
                 `are you sure Weaviate version ${this.options.version} exists? ` +
-                `note that embedded db is only supported for versions >= 1.18.0`
+                `note that embedded db for linux is only supported for versions >= 1.18.0, ` +
+                `and embedded db for mac is only supported for versions >= 1.19.8`
             )
           );
         } else {
