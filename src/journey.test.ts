@@ -5,7 +5,7 @@ describe('embedded', () => {
   jest.setTimeout(60 * 1000);
 
   it('checks platform', () => {});
-  if (process.platform != 'linux') {
+  if (process.platform != 'linux' && process.platform != 'darwin') {
     console.warn(`Skipping because EmbeddedDB does not support ${process.platform}`);
     return;
   }
@@ -23,7 +23,7 @@ describe('embedded', () => {
     const client: EmbeddedClient = weaviate.client(
       new EmbeddedOptions({
         port: 7878,
-        version: '1.18.1',
+        version: '1.19.8',
         env: {
           QUERY_DEFAULTS_LIMIT: 50,
           DEFAULT_VECTORIZER_MODULE: 'text2vec-openai',
@@ -57,8 +57,12 @@ describe('embedded', () => {
   });
 
   it('starts/stops EmbeddedDB with binaryUrl', async () => {
-    const binaryUrl =
-      'https://github.com/weaviate/weaviate/releases/download/v1.19.8/weaviate-v1.19.8-linux-amd64.tar.gz';
+    let binaryUrl = 'https://github.com/weaviate/weaviate/releases/download/v1.19.8/weaviate-v1.19.8-';
+    if (process.platform == 'darwin') {
+      binaryUrl += 'darwin-all.zip';
+    } else {
+      binaryUrl += `linux-amd64.tar.gz`;
+    }
     const client: EmbeddedClient = weaviate.client(
       new EmbeddedOptions({
         binaryUrl: binaryUrl,
