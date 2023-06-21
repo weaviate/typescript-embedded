@@ -3,11 +3,12 @@ import fs from 'fs';
 import { get } from 'https';
 import net from 'net';
 import { spawn } from 'child_process';
-import { dirname } from 'path/posix';
+import { dirname, basename } from 'path/posix';
 import { homedir } from 'os';
 import { join } from 'path';
 import { extract } from 'tar';
 import { createHash } from 'crypto';
+import Unzipper from 'adm-zip';
 
 const defaultBinaryPath = join(homedir(), '.cache/weaviate-embedded');
 const defaultPersistenceDataPath = join(homedir(), '.local/share/weaviate');
@@ -208,7 +209,13 @@ export class EmbeddedDB {
         `Binary ${this.options.binaryPath} does not exist.`,
         `Downloading binary for version ${this.options.version || this.options.binaryPath}`
       );
-      await this.downloadBinary().then((tarballPath) => this.untarBinary(tarballPath));
+      await this.downloadBinary().then(async (downloadPath) => {
+        if (downloadPath.endsWith('tgz')) {
+          await this.untarBinary(downloadPath);
+        } else {
+          await this.unzipBinary(downloadPath);
+        }
+      });
     }
   }
 
@@ -219,23 +226,30 @@ export class EmbeddedDB {
   }
 
   private downloadBinary(): Promise<string> {
-    const tarballPath = `${this.options.binaryPath}.tgz`;
-    const file = fs.createWriteStream(tarballPath);
+    const url = this.buildBinaryUrl();
+
+    let path: string;
+    if (url.endsWith('.zip')) {
+      path = `${this.options.binaryPath}.zip`;
+    } else {
+      path = `${this.options.binaryPath}.tgz`;
+    }
+
+    const file = fs.createWriteStream(path);
     return new Promise((resolve, reject) => {
-      const url = this.buildBinaryUrl();
       get(url, (resp) => {
         if (resp.statusCode == 200) {
           resp.pipe(file);
           file.on('finish', () => {
             file.close();
-            resolve(tarballPath);
+            resolve(path);
           });
         } else if (resp.statusCode == 302 && resp.headers.location) {
           get(resp.headers.location, (resp) => {
             resp.pipe(file);
             file.on('finish', () => {
               file.close();
-              resolve(tarballPath);
+              resolve(path);
             });
           });
         } else if (resp.statusCode == 404) {
@@ -243,15 +257,16 @@ export class EmbeddedDB {
             new Error(
               `failed to download binary: not found. ` +
                 `are you sure Weaviate version ${this.options.version} exists? ` +
-                `note that embedded db is only supported for versions >= 1.18.0`
+                `note that embedded db for linux is only supported for versions >= 1.18.0, ` +
+                `and embedded db for mac is only supported for versions >= 1.19.8`
             )
           );
         } else {
           reject(new Error(`failed to download binary: unexpected status code: ${resp.statusCode}`));
         }
       }).on('error', (err) => {
-        fs.unlinkSync(tarballPath);
-        reject(new Error(`failed to download binary: ${JSON.stringify(err)}`));
+        fs.unlinkSync(path);
+        reject(new Error(`failed to download binary: ${err}`));
       });
     });
   }
@@ -271,9 +286,14 @@ export class EmbeddedDB {
       default:
         throw new Error(`Embedded DB unsupported architecture: ${process.arch}`);
     }
+    let ext = 'tar.gz';
+    if (process.platform == 'darwin') {
+      ext = 'zip';
+      arch = 'all';
+    }
     return (
       `https://github.com/weaviate/weaviate/releases/download/v${this.options.version}` +
-      `/weaviate-v${this.options.version}-linux-${arch}.tar.gz`
+      `/weaviate-v${this.options.version}-${process.platform}-${arch}.${ext}`
     );
   }
 
@@ -294,15 +314,36 @@ export class EmbeddedDB {
           .on('error', (err) => {
             if (this.options.binaryUrl) {
               reject(
-                new Error(
-                  `failed to untar binary: ${JSON.stringify(err)}, ` +
-                    `are you sure binaryUrl points to a tar file?`
-                )
+                new Error(`failed to untar binary: ${err}, are you sure binaryUrl points to a tar file?`)
               );
             }
             reject(new Error(`failed to untar binary: ${JSON.stringify(err)}`));
           })
       );
+    });
+  }
+
+  private unzipBinary(zipPath: string): Promise<null> {
+    const zip = new Unzipper(zipPath);
+    const entries = zip.getEntries();
+
+    return new Promise((resolve, reject) => {
+      entries.forEach((entry: Unzipper.IZipEntry) => {
+        if (entry.entryName == 'weaviate') {
+          zip.extractEntryTo(
+            entry.entryName,
+            dirname(this.options.binaryPath),
+            false,
+            true,
+            false,
+            basename(this.options.binaryPath)
+          );
+          fs.unlinkSync(zipPath);
+          fs.chmodSync(this.options.binaryPath, 0o777);
+          resolve(null);
+        }
+      });
+      reject(new Error('failed to find binary in zip'));
     });
   }
 
@@ -346,7 +387,7 @@ export class EmbeddedDB {
 
 function checkSupportedPlatform() {
   const platform: string = process.platform;
-  if (platform == 'darwin' || platform == 'win32') {
+  if (platform != 'linux' && platform != 'darwin') {
     throw new Error(`${platform} is not supported with EmbeddedDB`);
   }
 }
