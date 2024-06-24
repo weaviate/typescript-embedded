@@ -1,5 +1,4 @@
 import weaviate, { EmbeddedClient, EmbeddedOptions } from '.';
-import { WeaviateClass } from 'weaviate-ts-client';
 
 describe('embedded', () => {
   jest.setTimeout(60 * 1000);
@@ -11,16 +10,16 @@ describe('embedded', () => {
   }
 
   it('starts/stops EmbeddedDB with default options', async () => {
-    const client: EmbeddedClient = weaviate.client(new EmbeddedOptions());
+    const client: EmbeddedClient = await weaviate.client(new EmbeddedOptions());
     await client.embedded.start();
     await checkClientServerConn(client).catch((err: any) => {
       throw new Error(`unexpected failure: ${err}`);
     });
-    client.embedded.stop();
+    await client.embedded.stop();
   });
 
   it('starts/stops EmbeddedDB with custom options', async () => {
-    const client: EmbeddedClient = weaviate.client(
+    const client: EmbeddedClient = await weaviate.client(
       new EmbeddedOptions({
         port: 7878,
         version: '1.19.8',
@@ -30,30 +29,31 @@ describe('embedded', () => {
         },
       }),
       {
-        scheme: 'http',
-        host: '127.0.0.1:7878',
+        host: '127.0.0.01',
+        port: 7878,
+        grpcPort: 50051,
       }
     );
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => {
-      client.embedded.stop();
+    await checkClientServerConn(client).catch(async (err: any) => {
+      await client.embedded.stop();
       throw new Error(`unexpected failure: ${err}`);
     });
-    client.embedded.stop();
+    await client.embedded.stop();
   });
 
   it('starts/stops EmbeddedDB with latest version', async () => {
-    const client: EmbeddedClient = weaviate.client(
+    const client: EmbeddedClient = await weaviate.client(
       new EmbeddedOptions({
         version: 'latest',
       })
     );
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => {
-      client.embedded.stop();
+    await checkClientServerConn(client).catch(async (err: any) => {
+      await client.embedded.stop();
       throw new Error(`unexpected failure: ${err}`);
     });
-    client.embedded.stop();
+    await client.embedded.stop();
   });
 
   it('starts/stops EmbeddedDB with binaryUrl', async () => {
@@ -63,17 +63,17 @@ describe('embedded', () => {
     } else {
       binaryUrl += `linux-amd64.tar.gz`;
     }
-    const client: EmbeddedClient = weaviate.client(
+    const client: EmbeddedClient = await weaviate.client(
       new EmbeddedOptions({
         binaryUrl: binaryUrl,
       })
     );
     await client.embedded.start();
-    await checkClientServerConn(client).catch((err: any) => {
-      client.embedded.stop();
+    await checkClientServerConn(client).catch(async (err: any) => {
+      await client.embedded.stop();
       throw new Error(`unexpected failure: ${err}`);
     });
-    client.embedded.stop();
+    await client.embedded.stop();
   });
 });
 
@@ -85,22 +85,20 @@ async function checkClientServerConn(client: EmbeddedClient) {
     properties: [{ name: 'stringProp', dataType: ['string'] }],
   };
 
-  await client.schema
-    .classCreator()
-    .withClass(testClass)
-    .do()
-    .then((res: WeaviateClass) => {
-      expect(res.class).toEqual('TestClass');
+  await client.collections
+    .create({
+      name: testClass,
+    })
+    .then((res) => {
+      expect(res.name).toEqual('TestClass');
       console.log('class created!');
     })
     .catch((err: any) => {
       throw new Error(`unexpected error: ${err}`);
     });
 
-  await client.schema
-    .classDeleter()
-    .withClassName(testClass.class)
-    .do()
+  await client.collections
+    .delete(testClass.class)
     .then(() => console.log('class deleted!'))
     .catch((err: any) => {
       throw new Error(`unexpected error: ${err}`);

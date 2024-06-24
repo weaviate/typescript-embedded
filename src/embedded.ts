@@ -159,12 +159,14 @@ export class EmbeddedDB {
   }
 
   stop() {
-    try {
-      process.kill(this.pid, 'SIGTERM');
-      console.log(`Embedded db @ PID ${this.pid} successfully stopped`);
-    } catch (err) {
-      console.log(`Tried to stop embedded db @ PID ${this.pid}.`, `PID not found, so nothing will be done`);
-    }
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(process.kill(this.pid, 'SIGTERM'));
+        console.log(`Embedded db @ PID ${this.pid} successfully stopped`);
+      } catch (err) {
+        console.log(`Tried to stop embedded db @ PID ${this.pid}.`, `PID not found, so nothing will be done`);
+      }
+    });
   }
 
   private resolveWeaviateVersion(): Promise<void> {
