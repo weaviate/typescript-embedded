@@ -36,7 +36,7 @@ export class EmbeddedOptions {
       throw new Error('cannot provide both version and binaryUrl');
     }
     this.host = cfg && cfg.host ? cfg.host : '127.0.0.1';
-    this.port = cfg && cfg.port ? cfg.port : 6666;
+    this.port = cfg && cfg.port ? cfg.port : 6789;
     this.binaryUrl = cfg?.binaryUrl;
     this.version = this.parseVersion(cfg);
     this.binaryPath = this.getBinaryPath(cfg);
